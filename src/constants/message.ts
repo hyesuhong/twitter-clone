@@ -1,7 +1,7 @@
-import { Object } from '../types/common';
+import { Obj } from '../types/common';
 
 type errorMessage = {
-	Firebase: Object<string>;
+	Firebase: Obj<string>;
 };
 
 export const errorMsg: errorMessage = {

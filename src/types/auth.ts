@@ -1,9 +1,9 @@
 import AuthService from '../services/Auth';
-import { Object, voidFn } from './common';
+import { Obj, voidFn } from './common';
 
 export type socialType = 'GITHUB';
 
-export interface authUserInfo extends Object<string> {}
+export interface authUserInfo extends Obj<string> {}
 export interface joinUserInfo extends authUserInfo {}
 
 export interface authProvider {
