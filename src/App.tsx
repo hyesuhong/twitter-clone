@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import reset from 'styled-reset';
@@ -5,6 +6,7 @@ import router from './Router';
 import AuthProvider from './contexts/AuthContext';
 import AuthService from './services/Auth';
 import { auth } from './firebase';
+import Loading from './components/Loading';
 
 const GlobalStyle = createGlobalStyle`
 	${reset}
@@ -31,12 +33,26 @@ const GlobalStyle = createGlobalStyle`
 const authService = new AuthService(auth);
 
 function App() {
+	const [isLoading, setIsLoading] = useState(true);
+	const init = async () => {
+		await auth.authStateReady().catch(console.error);
+		setIsLoading(false);
+	};
+
+	useEffect(() => {
+		init();
+	}, []);
+
 	return (
 		<>
 			<GlobalStyle />
-			<AuthProvider authService={authService}>
-				<RouterProvider router={router} />
-			</AuthProvider>
+			{isLoading ? (
+				<Loading />
+			) : (
+				<AuthProvider authService={authService}>
+					<RouterProvider router={router} />
+				</AuthProvider>
+			)}
 		</>
 	);
 }
