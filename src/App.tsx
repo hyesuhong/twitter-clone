@@ -2,6 +2,9 @@ import { RouterProvider } from 'react-router-dom';
 import { createGlobalStyle } from 'styled-components';
 import reset from 'styled-reset';
 import router from './Router';
+import AuthProvider from './contexts/AuthContext';
+import AuthService from './services/Auth';
+import { auth } from './firebase';
 
 const GlobalStyle = createGlobalStyle`
 	${reset}
@@ -25,11 +28,15 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+const authService = new AuthService(auth);
+
 function App() {
 	return (
 		<>
 			<GlobalStyle />
-			<RouterProvider router={router} />
+			<AuthProvider authService={authService}>
+				<RouterProvider router={router} />
+			</AuthProvider>
 		</>
 	);
 }
