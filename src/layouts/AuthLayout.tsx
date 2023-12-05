@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
+import { useAuth } from '../contexts/AuthContext';
+import { Obj } from '../types/common';
+import ErrorMessage from '../components/ErrorMessage';
 
 const Wrapper = styled.main`
 	flex: 1;
@@ -78,15 +82,81 @@ interface Props {
 }
 
 const AuthLayout = ({ type, inputs, switcher }: Props) => {
+	const navigate = useNavigate();
+	const {
+		join,
+		loginWithEmail,
+		loginWithSocial,
+		cleanUpState,
+		isLoading,
+		error,
+	} = useAuth();
+	const [values, setValues] = useState<Obj<string>>(
+		inputs.reduce<Obj<string>>((acc, input) => {
+			acc[input.name] = input.initial;
+			return acc;
+		}, {})
+	);
+
 	const pageTitle = type[0] + type.slice(1).toLowerCase();
+
+	const authSuccessCallback = () => {
+		navigate('/');
+	};
+
+	const onInputChagne = (ev: React.ChangeEvent<HTMLInputElement>) => {
+		const {
+			target: { name, value },
+		} = ev;
+
+		if (typeof values[name] === 'undefined') {
+			return;
+		}
+
+		setValues((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+		ev.preventDefault();
+
+		const valueArr = Object.values(values);
+
+		if (isLoading || valueArr.some((v) => v === '')) {
+			return;
+		}
+
+		switch (type) {
+			case 'JOIN':
+				if (!join) return;
+				await join({ ...values }, authSuccessCallback);
+				break;
+			case 'LOGIN':
+				if (!loginWithEmail) return;
+				await loginWithEmail({ ...values }, authSuccessCallback);
+				break;
+		}
+	};
+
+	const onGithubClick = async () => {
+		if (!loginWithSocial) return;
+
+		await loginWithSocial('GITHUB', authSuccessCallback);
+	};
+
+	useEffect(() => {
+		return () => {
+			cleanUpState && cleanUpState();
+		};
+	}, []);
+
 	return (
 		<Wrapper>
 			<Title>{pageTitle}</Title>
 			<Social>
-				<Button label='Continue with Github' />
+				<Button label='Continue with Github' onClick={onGithubClick} />
 			</Social>
 
-			<Form>
+			<Form onSubmit={onSubmit}>
 				<List>
 					{inputs.map(({ type, name }, index) => (
 						<li key={index}>
@@ -94,8 +164,9 @@ const AuthLayout = ({ type, inputs, switcher }: Props) => {
 								hasLabel
 								type={type}
 								name={name}
-								value={''}
+								value={values[name]}
 								required
+								onChange={onInputChagne}
 							/>
 						</li>
 					))}
@@ -104,6 +175,8 @@ const AuthLayout = ({ type, inputs, switcher }: Props) => {
 					</li>
 				</List>
 			</Form>
+
+			{error && <ErrorMessage text={error} />}
 
 			<Switcher>
 				<p>
