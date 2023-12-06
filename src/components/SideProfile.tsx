@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 import icoUser from '../assets/icons/ico-user.svg';
 import icoLogout from '../assets/icons/ico-out.svg';
+import { useNavigate } from 'react-router';
+import { auth } from '../firebase';
 
 const Wrapper = styled.div`
 	dt {
@@ -80,6 +82,15 @@ const LogoutBtn = styled.button`
 `;
 
 const SideProfile = () => {
+	const navigate = useNavigate();
+
+	const onLogoutClick = async () => {
+		const confirm = window.confirm('Are you sure you want to logout?');
+		if (confirm) {
+			await auth.signOut();
+			navigate('/login');
+		}
+	};
 	return (
 		<Wrapper>
 			<dl>
@@ -97,7 +108,7 @@ const SideProfile = () => {
 					</ul>
 				</dd>
 			</dl>
-			<LogoutBtn>Logout</LogoutBtn>
+			<LogoutBtn onClick={onLogoutClick}>Logout</LogoutBtn>
 		</Wrapper>
 	);
 };
