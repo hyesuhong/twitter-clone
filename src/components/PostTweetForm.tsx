@@ -2,6 +2,9 @@ import styled from 'styled-components';
 import icoUser from '../assets/icons/ico-user.svg';
 import icoPhoto from '../assets/icons/ico-photo.svg';
 import { useState } from 'react';
+import { addDoc, collection, updateDoc } from '@firebase/firestore';
+import { auth, db, storage } from '../firebase';
+import { getDownloadURL, ref, uploadBytes } from '@firebase/storage';
 
 const Wrapper = styled.div`
 	display: flex;
@@ -50,7 +53,7 @@ const ImgFileLabel = styled.label<{ $selected?: boolean }>`
 	height: 30px;
 	border-radius: 50%;
 
-	background-color: ${({ $selected }) => ($selected ? 'blue' : 'white')};
+	background-color: ${({ $selected }) => ($selected ? 'skyblue' : 'white')};
 	mask: url(${icoPhoto}) no-repeat center center;
 	mask-size: 80%;
 	mask-clip: content-box;
@@ -96,10 +99,43 @@ const PostTweetForm = () => {
 		}
 	};
 
+	const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+		ev.preventDefault();
+
+		const user = auth.currentUser;
+		if (isLoading || text === '' || !user) return;
+
+		try {
+			setIsLoading(true);
+
+			const post = await addDoc(collection(db, 'tweets'), {
+				text,
+				createdAt: Date.now(),
+				username: user.displayName || 'Anonymous',
+				userId: user.uid,
+			});
+
+			if (file) {
+				const locationRef = ref(storage, `tweets/${user.uid}/${post.id}`);
+				const uploadedFile = await uploadBytes(locationRef, file);
+				const fileInfo = await getDownloadURL(uploadedFile.ref);
+
+				await updateDoc(post, { imgUrl: fileInfo });
+			}
+
+			setText('');
+			setFile(null);
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	return (
 		<Wrapper>
 			<Profile>Username</Profile>
-			<Form>
+			<Form onSubmit={onSubmit}>
 				<Textarea value={text} onChange={onTextChange} />
 				<ManageArea>
 					<ImgFileLabel htmlFor='post-image' $selected={Boolean(file)} />
