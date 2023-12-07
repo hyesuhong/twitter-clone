@@ -11,12 +11,19 @@ const Wrapper = styled.div`
 	width: min(100%, 1400px);
 	padding: 32px 20px;
 
+	height: 100vh;
+	overflow-x: hidden;
+	overflow-y: auto;
+
 	& > main {
 		flex: 1;
 	}
 `;
 
 const RightSide = styled.aside`
+	position: sticky;
+	top: 0;
+
 	display: grid;
 	grid-template-rows: 1fr max-content;
 	gap: 32px;

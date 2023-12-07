@@ -5,6 +5,8 @@ import icoBookmark from '../assets/icons/ico-bookmark.svg';
 import icoCog from '../assets/icons/ico-cog.svg';
 
 const Aside = styled.aside`
+	position: sticky;
+	top: 0;
 	width: 16.49vw;
 `;
 
