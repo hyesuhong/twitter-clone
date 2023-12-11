@@ -3,14 +3,17 @@ import icoUser from '../assets/icons/ico-user.svg';
 import icoLogout from '../assets/icons/ico-out.svg';
 import { useNavigate } from 'react-router';
 import { auth } from '../firebase';
+import { Link } from 'react-router-dom';
 
 const Wrapper = styled.div`
-	dt {
+	& dt > a {
 		display: flex;
 		align-items: center;
 		gap: 4px;
 
 		padding: 10px;
+		color: white;
+		text-decoration: none;
 
 		& > span {
 			flex: 0 0 40px;
@@ -83,6 +86,7 @@ const LogoutBtn = styled.button`
 
 const SideProfile = () => {
 	const navigate = useNavigate();
+	const user = auth.currentUser;
 
 	const onLogoutClick = async () => {
 		const confirm = window.confirm('Are you sure you want to logout?');
@@ -91,11 +95,19 @@ const SideProfile = () => {
 			navigate('/login');
 		}
 	};
+
+	if (!user) {
+		return null;
+	}
+
 	return (
 		<Wrapper>
 			<dl>
 				<dt>
-					<span></span>Username
+					<Link to={`/profile/${user.uid}`}>
+						<span></span>
+						{user.displayName}
+					</Link>
 				</dt>
 				<dd>
 					<ul>

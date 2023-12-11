@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import Button from './Button';
 import { deleteDoc, doc, updateDoc } from '@firebase/firestore';
 import { deleteObject, ref } from '@firebase/storage';
+import { Link } from 'react-router-dom';
 
 const Wrapper = styled.div`
 	padding: 10px;
@@ -12,8 +13,19 @@ const Wrapper = styled.div`
 `;
 
 const User = styled.div`
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, max-content) 1fr;
 	align-items: center;
+
+	& > a {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		white-space: nowrap;
+		gap: 16px;
+		color: white;
+		text-decoration: none;
+	}
 `;
 
 const Profile = styled.span`
@@ -24,7 +36,6 @@ const Profile = styled.span`
 	mask-size: cover;
 	-webkit-mask: url(${icoUser}) no-repeat center center;
 	-webkit-mask-size: cover;
-	margin-right: 16px;
 `;
 
 const Date = styled.span`
@@ -148,8 +159,10 @@ const Post = ({ id, createdAt, imgUrl, text, userId, username }: post) => {
 	return (
 		<Wrapper data-user={userId} data-id={id}>
 			<User>
-				<Profile />
-				{username}
+				<Link to={`/profile/${userId}`}>
+					<Profile />
+					<span>{username}</span>
+				</Link>
 				<Date>{createdAt}</Date>
 			</User>
 			{imgUrl && (

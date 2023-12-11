@@ -4,6 +4,7 @@ import Login from './routes/auth/Login';
 import Join from './routes/auth/Join';
 import ProtectedRoute from './components/ProtectedRoute';
 import BasicLayout from './layouts/BasicLayout';
+import Profile from './routes/basic/Profile';
 
 const router = createBrowserRouter([
 	{
@@ -13,7 +14,10 @@ const router = createBrowserRouter([
 				<BasicLayout />
 			</ProtectedRoute>
 		),
-		children: [{ path: '', element: <Home /> }],
+		children: [
+			{ path: '', element: <Home /> },
+			{ path: 'profile/:id', element: <Profile /> },
+		],
 	},
 	{
 		path: '/login',

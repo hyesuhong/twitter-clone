@@ -80,6 +80,7 @@ const PostTweetForm = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [text, setText] = useState('');
 	const [file, setFile] = useState<File | null>();
+	const user = auth.currentUser;
 
 	const onTextChange = (ev: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const {
@@ -102,7 +103,6 @@ const PostTweetForm = () => {
 	const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
 		ev.preventDefault();
 
-		const user = auth.currentUser;
 		if (isLoading || text === '' || !user) return;
 
 		try {
@@ -134,7 +134,7 @@ const PostTweetForm = () => {
 
 	return (
 		<Wrapper>
-			<Profile>Username</Profile>
+			<Profile>{user?.displayName}</Profile>
 			<Form onSubmit={onSubmit}>
 				<Textarea value={text} onChange={onTextChange} />
 				<ManageArea>
