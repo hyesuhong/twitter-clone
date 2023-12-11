@@ -118,7 +118,6 @@ const Post = ({ id, createdAt, imgUrl, text, userId, username }: post) => {
 	const onEditClick = () => {
 		setEdit(true);
 		setTimeout(() => {
-			console.log(textareaRef.current);
 			textareaRef.current && textareaRef.current.focus();
 		}, 200);
 	};
