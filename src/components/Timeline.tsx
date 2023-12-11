@@ -17,7 +17,7 @@ const Timeline = () => {
 
 		const subscribe = async () => {
 			const postQuery = query(
-				collection(db, 'tweets'),
+				collection(db, 'posts'),
 				orderBy('createdAt', 'desc'),
 				limit(25)
 			);

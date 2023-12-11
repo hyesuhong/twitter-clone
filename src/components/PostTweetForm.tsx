@@ -108,7 +108,7 @@ const PostTweetForm = () => {
 		try {
 			setIsLoading(true);
 
-			const post = await addDoc(collection(db, 'tweets'), {
+			const post = await addDoc(collection(db, 'posts'), {
 				text,
 				createdAt: Date.now(),
 				username: user.displayName || 'Anonymous',
@@ -116,7 +116,7 @@ const PostTweetForm = () => {
 			});
 
 			if (file) {
-				const locationRef = ref(storage, `tweets/${user.uid}/${post.id}`);
+				const locationRef = ref(storage, `posts/${user.uid}/${post.id}`);
 				const uploadedFile = await uploadBytes(locationRef, file);
 				const fileInfo = await getDownloadURL(uploadedFile.ref);
 
