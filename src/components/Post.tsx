@@ -1,5 +1,10 @@
 import styled from 'styled-components';
 import icoUser from '../assets/icons/ico-user.svg';
+import { auth, db, storage } from '../firebase';
+import { useRef, useState } from 'react';
+import Button from './Button';
+import { deleteDoc, doc, updateDoc } from '@firebase/firestore';
+import { deleteObject, ref } from '@firebase/storage';
 
 const Wrapper = styled.div`
 	padding: 10px;
@@ -47,10 +52,31 @@ const ImgWrapper = styled.div`
 
 const Img = styled.img`
 	max-width: 100%;
+	max-height: 200px;
 `;
 
 const Text = styled.p`
 	margin-top: 20px;
+`;
+
+const Textarea = styled.textarea`
+	width: 100%;
+	height: 160px;
+	border: 1px solid white;
+	background: none;
+	color: white;
+	resize: none;
+`;
+
+const BtnArea = styled.div`
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 20px;
+
+	& > button {
+		flex: 0 0 60px;
+	}
 `;
 
 export interface post {
@@ -63,6 +89,63 @@ export interface post {
 }
 
 const Post = ({ id, createdAt, imgUrl, text, userId, username }: post) => {
+	const user = auth.currentUser;
+	const isEditable = user && userId === user.uid;
+	const [edit, setEdit] = useState(false);
+	const [editText, setEditText] = useState(text);
+
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	const onDeleteClick = async () => {
+		const ok = confirm('Are you sure you want to delete Post?');
+
+		if (!ok || !isEditable) {
+			return;
+		}
+
+		try {
+			await deleteDoc(doc(db, 'posts', id));
+
+			if (imgUrl) {
+				const imgRef = ref(storage, `posts/${user.uid}/${id}`);
+				await deleteObject(imgRef);
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	const onEditClick = () => {
+		setEdit(true);
+		setTimeout(() => {
+			console.log(textareaRef.current);
+			textareaRef.current && textareaRef.current.focus();
+		}, 200);
+	};
+
+	const onEditTextChange = (ev: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const {
+			target: { value },
+		} = ev;
+
+		setEditText(value);
+	};
+
+	const onUpdateClick = async () => {
+		try {
+			const res = await updateDoc(doc(db, 'posts', id), { text: editText });
+			console.log(res);
+			setEdit(false);
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	const onCancelClick = () => {
+		setEditText(text);
+		setEdit(false);
+	};
+
 	return (
 		<Wrapper data-user={userId} data-id={id}>
 			<User>
@@ -75,7 +158,30 @@ const Post = ({ id, createdAt, imgUrl, text, userId, username }: post) => {
 					<Img src={imgUrl} alt='' />
 				</ImgWrapper>
 			)}
-			<Text>{text}</Text>
+			{edit ? (
+				<>
+					<Textarea
+						value={editText}
+						onChange={onEditTextChange}
+						ref={textareaRef}
+					/>
+
+					<BtnArea>
+						<Button label='Update' size='S' onClick={onUpdateClick} />
+						<Button label='Cancel' size='S' onClick={onCancelClick} />
+					</BtnArea>
+				</>
+			) : (
+				<>
+					<Text>{text}</Text>
+					{isEditable && (
+						<BtnArea>
+							<Button label='Edit' size='S' onClick={onEditClick} />
+							<Button label='Delete' size='S' onClick={onDeleteClick} />
+						</BtnArea>
+					)}
+				</>
+			)}
 		</Wrapper>
 	);
 };
