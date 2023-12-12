@@ -2,6 +2,8 @@ import {
 	DocumentReference,
 	collection,
 	getDocs,
+	limit,
+	orderBy,
 	query,
 	updateDoc,
 	where,
@@ -14,6 +16,7 @@ import icoUser from '../../assets/icons/ico-user.svg';
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage';
 import Loading from '../../components/Loading';
 import { updateProfile } from '@firebase/auth';
+import Post, { post } from '../../components/Post';
 
 const Wrapper = styled.div``;
 
@@ -85,20 +88,30 @@ const Profile = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [userRef, setUserRef] = useState<DocumentReference>();
 	const [userData, setUserData] = useState<userData>();
+	const [posts, setPosts] = useState<post[]>([]);
 
 	const getUser = async (id: string) => {
-		const collectionRef = collection(db, 'users');
-		const getUserQuery = query(collectionRef, where('uid', '==', id));
+		setIsLoading(true);
+		setUserRef(undefined);
+		setUserData(undefined);
+		try {
+			const collectionRef = collection(db, 'users');
+			const getUserQuery = query(collectionRef, where('uid', '==', id));
 
-		const querySnapshot = await getDocs(getUserQuery);
+			const querySnapshot = await getDocs(getUserQuery);
 
-		if (querySnapshot.docs.length < 1) return;
+			if (querySnapshot.docs.length < 1) return;
 
-		const ref = querySnapshot.docs[0].ref;
-		setUserRef(ref);
+			const ref = querySnapshot.docs[0].ref;
+			setUserRef(ref);
 
-		const data = querySnapshot.docs[0].data();
-		setUserData(data as userData);
+			const data = querySnapshot.docs[0].data();
+			setUserData(data as userData);
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const changeProfileImg = async (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,8 +140,38 @@ const Profile = () => {
 		setIsLoading(false);
 	};
 
+	const getPosts = async (id: string) => {
+		setPosts([]);
+		setIsLoading(true);
+
+		try {
+			const collectionRef = collection(db, 'posts');
+			const getPostsQuery = query(
+				collectionRef,
+				where('userId', '==', id),
+				orderBy('createdAt', 'desc'),
+				limit(25)
+			);
+
+			const querySnapshot = await getDocs(getPostsQuery);
+			console.log(querySnapshot);
+			const posts = querySnapshot.docs.map((doc) => {
+				const { userId, username, createdAt, imgUrl, text } = doc.data();
+				return { id: doc.id, text, imgUrl, createdAt, username, userId };
+			});
+			setPosts(posts);
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	useEffect(() => {
-		id && getUser(id);
+		if (id) {
+			getUser(id);
+			getPosts(id);
+		}
 	}, [id]);
 
 	return (
@@ -166,6 +209,9 @@ const Profile = () => {
 					<Info>{userData?.name}</Info>
 				</UserInfo>
 			</Wrapper>
+			{posts.map((post, index) => (
+				<Post key={index} {...post} />
+			))}
 			{isLoading && <Loading />}
 		</>
 	);
